@@ -1,11 +1,14 @@
+import os
 import torch
 from transformers import Qwen2VLProcessor
 from transformers import Qwen2TokenizerFast
 from transformers import Qwen2_5_VLForConditionalGeneration
 from torch.distributions.multivariate_normal import MultivariateNormal
 
-model_path = "/home/jiangmingming/mntspace/LLMs/Qwen/Qwen2.5-VL-3B-Instruct"
-save_path = "/home/jiangmingming/mntspace/LLMs/fpllm/FPQwen"
+model_path = os.getenv("QWEN_VL_MODEL_PATH")
+save_path = os.getenv("RAW_VLM4FP_MODEL_PATH")
+assert model_path is not None
+assert save_path is not None
 
 tokenizer = Qwen2TokenizerFast.from_pretrained(model_path)
 processor = Qwen2VLProcessor.from_pretrained(model_path)
@@ -61,8 +64,8 @@ print(f'{model.get_input_embeddings().weight.data.shape=}')
 print(f'{model.lm_head.weight.data.shape=}')
 
 
-# tokenizer.save_pretrained(save_path)
-# processor.save_pretrained(save_path)
-# model.save_pretrained(save_path)
+tokenizer.save_pretrained(save_path)
+processor.save_pretrained(save_path)
+model.save_pretrained(save_path)
 
 print('add new token and init new token embedding done.')

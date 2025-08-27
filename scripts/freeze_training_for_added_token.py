@@ -1,3 +1,4 @@
+import os
 from transformers import (
     Qwen2VLProcessor,
     Qwen2TokenizerFast,
@@ -31,7 +32,10 @@ MULTIMODAL_KEYWORDS = ["pixel_values", "image_grid_thw", "video_grid_thw", "pixe
 # ----------------------
 # 1. 加载原始模型和tokenizer
 # ----------------------
-model_path = "/home/jiangmingming/mntspace/LLMs/fpllm/FPQwen"
+model_path = os.getenv("RAW_VLM4FP_MODEL_PATH")
+save_path = os.getenv("NEW_TOKEN_FINETUNED_VLM4FP_MODEL_PATH")
+assert model_path is not None
+assert save_path is not None
 tokenizer = Qwen2TokenizerFast.from_pretrained(model_path)
 processor = Qwen2VLProcessor.from_pretrained(model_path)
 model = Qwen2_5_VLForConditionalGeneration.from_pretrained(model_path, torch_dtype=torch.bfloat16, device_map='auto')
@@ -109,7 +113,7 @@ def preprocess_function(example):
     return model_inputs
 
 
-dataset = load_dataset('/home/jiangmingming/mntspace/FPLLM/data/')
+dataset = load_dataset('./data/')
 tokenized_dataset = dataset.map(preprocess_function, batched=False, remove_columns=['instruction', 'input', 'output'])
 
 # 数据整理器（用于语言模型训练）
@@ -122,9 +126,9 @@ data_collator = DataCollatorForSeq2Seq(
 
 # 训练参数配置
 training_args = TrainingArguments(
-    output_dir="./new_token_training",
-    learning_rate=5e-3,
-    per_device_train_batch_size=64,
+    output_dir="./training_logs/new_token_training",
+    learning_rate=5e-4,
+    per_device_train_batch_size=25,
     num_train_epochs=10,
     logging_dir="./logs",
     logging_steps=100,
@@ -156,6 +160,5 @@ original_input_embeddings.weight.data[-added_token_num:,] = splited_input_embedd
 model.set_input_embeddings(original_input_embeddings)
 
 # 保存训练后的模型和tokenizer
-model.save_pretrained("./final_model")
-tokenizer.save_pretrained("./final_model")
-processor.save_pretrained("./final_model")
+model.save_pretrained(save_path)
+processor.save_pretrained(save_path)

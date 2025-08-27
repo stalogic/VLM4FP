@@ -100,8 +100,8 @@ def preprocess_function(example):
 
     input_ids = torch.cat([system_input_ids, prompt_input_ids, response_input_ids], dim=-1)
     labels = torch.cat([system_labels, prompt_labels, response_input_ids], dim=-1)
-    input_ids = pad_sequence(input_ids, padding_value=processor.tokenizer.pad_token_id)
-    labels = pad_sequence(labels, padding_value=IGNORE_INDEX)
+    input_ids = pad_sequence(input_ids, max_seq_length=100, padding_value=processor.tokenizer.pad_token_id)
+    labels = pad_sequence(labels, max_seq_length=100, padding_value=IGNORE_INDEX)
     attention_mask = input_ids.ne(processor.tokenizer.pad_token_id).to(torch.long)
     model_inputs = {
         "input_ids": input_ids[0],
@@ -128,8 +128,8 @@ data_collator = DataCollatorForSeq2Seq(
 training_args = TrainingArguments(
     output_dir="./training_logs/new_token_training",
     learning_rate=5e-4,
-    per_device_train_batch_size=25,
-    num_train_epochs=10,
+    per_device_train_batch_size=32,
+    num_train_epochs=20,
     logging_dir="./logs",
     logging_steps=100,
     save_steps=1000,
